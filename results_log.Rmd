@@ -1,7 +1,7 @@
 ---
 title: "Hawaii Plant METE Results Log"
 author: "A. J. Rominger"
-date: "February 27, 2017"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 ---
 
@@ -32,76 +32,118 @@ library(sp)
 setwd('~/Dropbox/Research/hawaiiMETE_plant')
 
 load('meteSumm.RData')
+load('meteEg.RData')
+load('~/Dropbox/hawaiiDimensions/kokua/data/islands.RData')
 ```
 
 First look at how deviations from METE play out across the islands. Fit is based on $z^2$ values as discussed in Rominger and Merow MEE paper.
 ```{r}
-plot(meteSumm, col = fitCol(sqrt(meteSumm@data$z2SAD)), pch = 16, cex = 0.5)
+layout(matrix(2:1, nrow = 2), heights = c(1, 4))
+par(mar = rep(0, 4))
+plot(meteSumm, col = fitCol(sqrt(meteSumm@data$z2SAD)), pch = 16, cex = 1)
+plot(spTransform(islands, CRS(proj4string(meteSumm))), add = TRUE)
+
+par(mar = c(0, 3, 0, 0) + 0.5, mgp = c(2, 0.75, 0))
+plot(sort(meteSumm@data$z2SAD), col = fitCol(sort(sqrt(meteSumm@data$z2SAD))), 
+     pch = 16, cex = 1, ylab = 'z^2 value', xaxt = 'n')
 ```
 
-Looking explicitly across variables of interest
+Overall the distribution of $z^2$ values tells us METE is pretty much never rejected (critical value at $\alpha = 0.05$ is $\chi_{1, P=0.95}^2 =$ `r round(qchisq(0.95, 1), 3)`.  We can look at a few (random) example SADs:
+
 ```{r}
-plot(meteSumm@data[, c('age_mid', 'z2SAD')], log = 'x')
-plot(meteSumm@data[, c('MAP', 'z2SAD')], log = 'x')
-plot(meteSumm@data[, c('MAT', 'z2SAD')], log = 'x')
+par(mfrow = c(4, 4), mar = c(2, 2, 0, 0), oma = c(2, 2, 0.5, 0.5), 
+    mgp = c(1.5, 0.3, 0), tcl = -0.25)
+for(i in 1:length(meteEg)) {
+    plot(meteEg[[i]]$sad, ptype = 'rad', add.legend = FALSE, 
+         xlab = '', ylab = '', log = 'y', ylim = c(1, max(meteEg[[i]]$sad$data)), 
+         yaxt = 'n')
+    logAxis(2)
+}
+mtext('Rank', side = 1, outer = TRUE)
+mtext('Abundance', side = 2, outer = TRUE)
 ```
 
+When sample size is small (i.e. a few species) it's hard to make concrete conclusions about fit. The $z^2$ value is based on simulations that hold $S_0$ and $N_0$ fixed, so should hypothetically account for sample size.
+
+We can look explicitly at fit across variables of interest
+```{r}
+par(mfrow = c(1, 4), mar = c(3, 1, 0, 0) + 0.5, oma = c(0, 2, 0, 0), mgp = c(2, 0.75, 0))
+plot(meteSumm@data[, c('age_mid', 'z2SAD')], log = 'x', xaxt = 'n'); logAxis(1)
+plot(meteSumm@data[, c('MAP', 'z2SAD')])
+plot(meteSumm@data[, c('MAT', 'z2SAD')])
+plot(meteSumm@data[, c('Prop_Introduced', 'z2SAD')])
+mtext('z^2 value', side = 2, outer = TRUE, line = 0.5)
+```
 
 
 Looking now jointly at environment and age as predictors of deviation
+```{r}
 layout(matrix(2:1, nrow = 2), heights = c(1, 4))
 par(mar = c(3, 3, 0, 0) + 0.5, mgp = c(2, 0.75, 0))
-plot(meteSumm@data[, c('age_mid', 'MAP')], log = 'x', pch = 16, cex = 0.5, 
+plot(meteSumm@data[, c('age_mid', 'MAP')], log = 'x', xaxt = 'n', pch = 16, cex = 1, 
      col = fitCol(sqrt(meteSumm@data$z2SAD)))
+logAxis(1)
 par(mar = c(0, 3, 0, 0) + 0.5, mgp = c(2, 0.75, 0))
 plot(sort(meteSumm@data$z2SAD), col = fitCol(sort(sqrt(meteSumm@data$z2SAD))), 
-     pch = 16, cex = 0.5, ylab = 'z^2 value', xaxt = 'n')
+     pch = 16, cex = 1, ylab = 'z^2 value', xaxt = 'n')
+```
 
-
-
-
-
-
+Checking if state variables influence fit, they don't
+```{r}
+par(mfrow = c(1, 3), mar = c(3, 1, 0, 0) + 0.5, oma = c(0, 2, 0, 0), mgp = c(2, 0.75, 0))
 plot(meteSumm@data[, c('S0', 'z2SAD')])
-plot(meteSumm@data[, c('N0', 'z2SAD')], log = 'x')
-plot(meteSumm@data[, c('E0', 'z2SAD')], log = 'x')
-plot(meteSumm@data[, c('Prop_Introduced', 'z2SAD')])
+plot(meteSumm@data[, c('N0', 'z2SAD')], log = 'x', xaxt = 'n'); logAxis(1)
+plot(meteSumm@data[, c('E0', 'z2SAD')], log = 'x', xaxt = 'n'); logAxis(1)
+mtext('z^2 value', side = 2, outer = TRUE, line = 0.5)
+```
 
+Speaking of state variables, how are they correlated?
+```{r}
 pairs(meteSumm@data[, c('S0', 'N0', 'E0')], log = 'xy')
+```
 
+How do state variables change with age and plot area?
+```{r}
+par(mfcol = c(4, 2), mar = c(2, 2, 1, 1), mgp = c(2, 0.75, 0), oma = c(1, 1, 0, 0) + 0.5)
 plot(meteSumm@data[, c('max_PlotArea', 'z2SAD')], log = 'x')
+mtext('z^2 value', side = 2, line = 2)
+
 plot(meteSumm@data[, c('max_PlotArea', 'S0')], log = 'xy')
+mtext('S0', side = 2, line = 2)
+
 plot(meteSumm@data[, c('max_PlotArea', 'N0')], log = 'xy')
+mtext('N0', side = 2, line = 2)
+
 plot(meteSumm@data[, c('max_PlotArea', 'E0')], log = 'xy')
+mtext('E0', side = 2, line = 2)
+mtext('Plot area', side = 1, line = 2)
 
 plot(meteSumm@data[, c('age_mid', 'z2SAD')], log = 'x')
 plot(meteSumm@data[, c('age_mid', 'S0')], log = 'xy')
 plot(meteSumm@data[, c('age_mid', 'N0')], log = 'xy')
 plot(meteSumm@data[, c('age_mid', 'E0')], log = 'xy')
+mtext('Age', side = 1, line = 2)
+```
 
-
+```{r}
 layout(matrix(2:1, nrow = 2), heights = c(1, 4))
 par(mar = c(3, 3, 0, 0) + 0.5, mgp = c(2, 0.75, 0))
 plot(meteSumm@data[, c('age_mid', 'max_PlotArea')], log = 'xy', pch = 16, cex = 1, 
      col = fitCol(sqrt(meteSumm@data$z2SAD)))
 par(mar = c(0, 3, 0, 0) + 0.5, mgp = c(2, 0.75, 0))
 plot(sort(meteSumm@data$z2SAD), col = fitCol(sort(sqrt(meteSumm@data$z2SAD))), 
-     pch = 16, cex = 0.5, ylab = 'z^2 value', xaxt = 'n')
+     pch = 16, cex = 1, ylab = 'z^2 value', xaxt = 'n')
+```
 
+We can also look for age-specific SARs
+```{r}
 layout(matrix(2:1, nrow = 2), heights = c(1, 4))
 par(mar = c(3, 3, 0, 0) + 0.5, mgp = c(2, 0.75, 0))
 plot(meteSumm@data[, c('age_mid', 'max_PlotArea')], log = 'xy', pch = 16, cex = 1, 
      col = fitCol(log(meteSumm@data$S0)))
 par(mar = c(0, 3, 0, 0) + 0.5, mgp = c(2, 0.75, 0))
 plot(sort(meteSumm@data$S0), col = fitCol(sort(log(meteSumm@data$S0))), 
-     pch = 16, cex = 0.5, ylab = 'S0', xaxt = 'n', log = 'y')
+     pch = 16, cex = 1, ylab = 'S_0', xaxt = 'n', log = 'y')
+```
 
 
-par(mfrow = c(4, 4), mar = c(2, 2, 0, 0), oma = c(2, 2, 0.5, 0.5), 
-    mgp = c(1.5, 0.3, 0), tcl = -0.25)
-for(i in sample(which(!is.na(meteSumm@data$z2SAD)), prod(par('mfrow')))) {
-    plot(meteSADIPD[[i]]$sad, ptype = 'rad', add.legend = FALSE, 
-         xlab = '', ylab = '', log = 'y', ylim = c(1, max(meteSADIPD[[i]]$sad$data)))
-}
-mtext('Rank', side = 1, outer = TRUE)
-mtext('Abundance', side = 2, outer = TRUE)
