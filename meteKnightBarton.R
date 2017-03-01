@@ -87,3 +87,6 @@ mtext('Abundance', side = 2, outer = TRUE, line = 0)
 mtext('Rank', side = 1, outer = TRUE, line = 0)
 
 dev.off()
+
+
+plot(meteKBsumm$S0, !is.na(meteKBsumm$z2))
