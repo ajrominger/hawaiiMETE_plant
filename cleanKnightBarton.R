@@ -10,13 +10,14 @@ setwd('~/Dropbox/Research/hawaiiMETE_plant')
 dataWD <- '~/Dropbox/Research/data/hawaiiPlant'
 files <- c('big island.xlsx', 'maui.xlsx', 'molokai.xlsx', 'oahu_final.xlsx', 'kauai.xlsx')
 
-plots <- lapply(files[files != 'molokai.xlsx'], function(f) {
+plots <- lapply(files, function(f) {
     wb <- loadWorkbook(file.path(dataWD, f))
     sheets <- names(getSheets(wb))
     sheets <- sheets[!grepl('list', sheets)]
     
     out <- lapply(sheets, function(s) {
         print(paste(f, s, sep = ': '))
+        if(s == 'Onini') browser()
         x <- read.xlsx2(file.path(dataWD, f), sheetName = s, header = TRUE)
         
         ## insure there are no factors
@@ -24,8 +25,8 @@ plots <- lapply(files[files != 'molokai.xlsx'], function(f) {
         
         if(!('Easting' %in% names(x))) {
             ## need to convert lat lon to utm
-            x$Longitude <- as.numeric(x$Longitude)
-            x$Latitude <- as.numeric(x$Latitude)
+            x$Longitude <- as.numeric(gsub('[^0-9\\.]', '', x$Longitude))
+            x$Latitude <- as.numeric(gsub('[^0-9\\.]', '', x$Latitude))
             noCoord <- is.na(x$Longitude) | is.na(x$Latitude)
             
             xsp <- SpatialPoints(x[!noCoord, 1:2], proj4string = CRS('+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs'))
