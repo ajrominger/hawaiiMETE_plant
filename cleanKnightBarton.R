@@ -25,8 +25,8 @@ plots <- lapply(files, function(f) {
         
         if(!('Easting' %in% names(x))) {
             ## need to convert lat lon to utm
-            x$Longitude <- as.numeric(gsub('[^0-9\\.]', '', x$Longitude))
-            x$Latitude <- as.numeric(gsub('[^0-9\\.]', '', x$Latitude))
+            x$Longitude <- as.numeric(gsub('[^0-9\\.-]', '', x$Longitude))
+            x$Latitude <- as.numeric(gsub('[^0-9\\.-]', '', x$Latitude))
             noCoord <- is.na(x$Longitude) | is.na(x$Latitude)
             
             xsp <- SpatialPoints(x[!noCoord, 1:2], proj4string = CRS('+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs'))
