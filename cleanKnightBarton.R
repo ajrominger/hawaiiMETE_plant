@@ -126,7 +126,7 @@ plots$MAP <- plotsInfo@data$MAP[match(plots$site, plotsInfo@data$site)]
 plots$elev <- plotsInfo@data$elev[match(plots$site, plotsInfo@data$site)]
 plots$Lon <- plots$Lat <- NA
 plots[, c('Lon', 'Lat')] <- coordinates(spTransform(plotsInfo, 
-                                                    CRS('+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs')))[match(plots$site, plotsInfo@data$site)]
+                                                    CRS('+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs')))[match(plots$site, plotsInfo@data$site),]
 
 ## write it all out
 save(plotsInfo, file = 'plotsInfo.RData')
