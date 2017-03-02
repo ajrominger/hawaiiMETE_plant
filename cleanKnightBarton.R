@@ -17,7 +17,7 @@ plots <- lapply(files, function(f) {
     
     out <- lapply(sheets, function(s) {
         print(paste(f, s, sep = ': '))
-        if(s == 'Onini') browser()
+        
         x <- read.xlsx2(file.path(dataWD, f), sheetName = s, header = TRUE)
         
         ## insure there are no factors
