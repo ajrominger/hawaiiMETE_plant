@@ -6,7 +6,7 @@ setwd('~/Dropbox/Research/hawaiiMETE_plant')
 
 ## read data
 dat <- read.csv('~/Dropbox/Research/data/hawaiiPlant/KnightBarton_clean.csv')
-source('plotsInfo.RData')
+load('plotsInfo.RData')
 
 meteKB <- lapply(split(dat, dat$site), 
                    # mc.cores = 6, 
