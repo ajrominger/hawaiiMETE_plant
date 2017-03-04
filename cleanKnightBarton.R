@@ -129,6 +129,87 @@ plots$Lon <- plots$Lat <- NA
 plots[, c('Lon', 'Lat')] <- coordinates(spTransform(plotsInfo, 
                                                     CRS('+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs')))[match(plots$site, plotsInfo@data$site),]
 
+
+## remove special characters from names
+plots$species <- gsub('[^[:alnum: ]]', '', plots$species)
+
+## remove unwanted spaced
+substring(plots$species, nchar(plots$species))[
+    grep('[^[:alnum:]]', substring(plots$species, nchar(plots$species)))] <- ''
+
+## capitalize first letter of all names
+substring(plots$species, 1, 1) <- toupper(substring(plots$species, 1, 1))
+
+## get native/non-native
+sppList <- read.csv(file.path(dataWD, 'Hawaii_SPPLIST.csv'), as.is = TRUE)
+
+plots$native <- sppList$Native_Status_Flora_HawaiianIslands_Synth[
+    match(tolower(gsub(' ', '', plots$species)), 
+          tolower(gsub(' ', '', sppList$Accepted_name_species)))]
+
+## by hand native and spelling correction
+plots$native[grep('Ageratina adenophora', plots$species)] <- 'Introduced'
+plots$species[grep('Alectryon', plots$species)] <- 'Alectryon macrococcus'
+plots$native[grep('Alectryon macrococcus', plots$species)] <- 'Native_Hawaii'
+plots$species[grep('Alectryon macrococcus', plots$species)] <- 'Alectryon macrococcus'
+plots$native[grep('Alyxia', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Antidesma', plots$species)] <- 'Native_Hawaii'
+plots$species[grep('Antidesma', plots$species)] <- 'Antidesma platyphyllum'
+plots$native[grep('Cheirodendron', plots$species)] <- 'Native_Hawaii'
+plots$species[grep('Claoxylon', plots$species)] <- 'Claoxylon sandwicense'
+plots$native[grep('Claoxylon sandwicense', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Clermontia', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Coprosma', plots$species)] <- 'Native_Hawaii'
+plots$species[grep('ordyline fruticosa', plots$species)] <- 'Cordyline fruticosa'
+plots$native[grep('Cyanea', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Cyrtandra', plots$species)] <- 'Native_Hawaii'
+plots$species[grepl('Cyrtandra', plots$species) & grepl('longifolia', plots$species)] <- 
+    'Cyrtandra longifolia'
+plots$native[grep('Dubautia', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Fig unknown', plots$species)] <- 'Introduced'
+plots$native[grep('Flindersia brayleyana', plots$species)] <- 'Introduced'
+plots$native[grep('Kadua', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Labordia tinifolia', plots$species)] <- 'Native_Hawaii'
+plots$species[grep('Leptocophy', plots$species)] <- 'Leptecophylla tameiameiae'
+plots$native[grep('Leptecophylla tameiameiae', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Lysiloma watsonii', plots$species)] <- 'Introduced'
+plots$native[grep('Melastoma', plots$species)] <- 'Introduced'
+plots$native[grep('Melestome', plots$species)] <- 'Introduced'
+plots$native[grep('melicope', plots$species, ignore.case = TRUE)] <- 'Native_Hawaii'
+plots$species[grep('clusiifolia', plots$species)] <- 'Melicope clusiifolia'
+plots$native[grep('Myrsine', plots$species)] <- 'Native_Hawaii'
+plots$species[grep('lessertiana', plots$species)] <- 'Myrsine lessertiana'
+plots$species[grep('Nestegis', plots$species)] <- 'Nestegis sandwicensis'
+plots$native[grep('Nestegis sandwicensis', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Pinus', plots$species)] <- 'Introduced'
+plots$native[grep('Platydesma spathulata', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Psychotria', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Rubus niveus', plots$species)] <- 'Introduced'
+plots$native[grep('Rubus rosifolius', plots$species)] <- 'Introduced'
+plots$native[grep('Scaevola gaudichaidiana', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Smilax melastomifolia', plots$species)] <- 'Native_Hawaii'
+plots$species[grep('Sophora', plots$species)] <- 'Sophora chrysophylla'
+plots$native[grep('Sophora chrysophylla', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Stachytarpheta dichotoma', plots$species)] <- 'Introduced'
+plots$native[grep('Tibouchina herbacea', plots$species)] <- 'Introduced'
+plots$species[grep('vaccinium reticulatum', plots$species)] <- 'Vaccinium reticulatum'
+plots$species[grep('Vaccium reticulatum', plots$species)] <- 'Vaccinium reticulatum'
+plots$species[grep('Vaccinum dentatum', plots$species)] <- 'Vaccinium dentatum'
+plots$native[grep('Vaccinium', plots$species)] <- 'Native_Hawaii'
+plots$native[grep('Xylosma hawaiiense', plots$species)] <- 'Native_Hawaii'
+plots$species[grepl('Kadua', plots$species) & grepl('affinis', plots$species)] <- 
+    'Kadua affinis'
+plots$species[grepl('Coprosma', plots$species) & grepl('ochracea', plots$species)] <- 
+    'Coprosma ochracea'
+
+## make native binary
+foo <- numeric(nrow(plots))
+foo[plots$native == 'Native_Hawaii'] <- 1
+foo[plots$native == 'Introduced'] <- 0
+foo[is.na(plots$native)] <- NA
+plots$native <- foo
+
+
 ## write it all out
 save(plotsInfo, file = 'plotsInfo.RData')
 write.csv(plots[, 1:(ncol(plots)-5)], file = file.path(dataWD, 'KnightBarton_clean.csv'), 
