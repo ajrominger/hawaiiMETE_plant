@@ -7,9 +7,10 @@ setwd('~/Dropbox/Research/hawaiiMETE_plant')
 ## read data
 dat <- read.csv('~/Dropbox/Research/data/hawaiiPlant/KnightBarton_clean.csv')
 load('plotsInfo.RData')
+source('fitCol.R')
 
-meteKB <- lapply(split(dat, dat$site), 
-                   # mc.cores = 6, 
+meteKB <- mclapply(split(dat, dat$site), 
+                   mc.cores = 6, 
                    FUN = function(x) {
                        esf <- try(meteESF(x$species, rep(1, nrow(x), x$dbh^2)))
                        
@@ -17,7 +18,7 @@ meteKB <- lapply(split(dat, dat$site),
                            sadZ <- NA
                            ipdMSE <- NA
                        } else {
-                           sadZ <- try(logLikZ(sad(esf), nrep = 2)$z)
+                           sadZ <- try(logLikZ(sad(esf), nrep = 499)$z)
                            if(class(sadZ) == 'try-error') sadZ <- NA
                            ipdMSE <- try(mse(ipd(esf)))
                            if(class(ipdMSE) == 'try-error') ipdMSE <- NA
