@@ -131,5 +131,7 @@ plots[, c('Lon', 'Lat')] <- coordinates(spTransform(plotsInfo,
 
 ## write it all out
 save(plotsInfo, file = 'plotsInfo.RData')
-write.csv(plots[, 1:(ncol(plots)-3)], file = file.path(dataWD, 'KnightBarton_clean.csv'))
-write.csv(plots, file = file.path(dataWD, 'KnightBarton_flat.csv'))
+write.csv(plots[, 1:(ncol(plots)-5)], file = file.path(dataWD, 'KnightBarton_clean.csv'), 
+          row.names = FALSE)
+write.csv(plots, file = file.path(dataWD, 'KnightBarton_flat.csv'), 
+          row.names = FALSE)
